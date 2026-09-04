@@ -13,6 +13,7 @@ from mcp.server.caching import CacheHint
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import Icon, ImageContent, TextContent, ToolAnnotations
 from pydantic import AnyHttpUrl, BaseModel, Field
+from starlette.responses import JSONResponse
 
 from scrapling import __version__
 from scrapling.core.utils import log
@@ -1101,6 +1102,11 @@ class ScraplingMCPServer:
             settings["auth"] = AuthSettings(issuer_url=base_url, resource_server_url=base_url)
 
         server = MCPServer(name="Scrapling", **settings)
+
+        @server.custom_route("/health", methods=["GET"])
+        async def health_check(_request):
+            return JSONResponse({"status": "ok", "service": "scrapling-mcp"})
+
         # Session management tools
         server.add_tool(
             self.open_session, title="open_session", structured_output=True, annotations=_SESSION_TOOL_ANNOTATIONS
